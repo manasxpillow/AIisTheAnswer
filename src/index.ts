@@ -1,7 +1,7 @@
 import yargsInteractive from 'yargs-interactive';
 import axios from 'axios';
 
-const OPEN_API_KEY = ""
+
 const MAX_CONTEXT_LENGTH = 10
 const messages: { role: string, content: string }[] = []
 
@@ -9,7 +9,7 @@ async function apiCall(prompt: string): Promise<string> {
     try {
         const headers = {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + OPEN_API_KEY
+            'Authorization': 'Bearer ' + process.env.OPENAI_API_KEY
         }
         messages.push({ "role": "user", "content": prompt })
         const data = {
@@ -39,6 +39,11 @@ const options: any = {
 };
 
 function prompt() {
+    if (!process.env.OPENAI_API_KEY) {
+        console.log("API key unavailable run export OPENAI_API_KEY={apikey}")
+        return
+    }
+
     yargsInteractive()
         .usage("$0 <command>")
         .interactive(options)
