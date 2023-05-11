@@ -1,7 +1,9 @@
 import yargsInteractive from 'yargs-interactive';
 import axios from 'axios';
 
-const OPEN_API_KEY = "some random api key"
+const OPEN_API_KEY = ""
+const MAX_CONTEXT_LENGTH = 10
+const messages: { role: string, content: string }[] = []
 
 async function apiCall(prompt: string): Promise<string> {
     try {
@@ -9,16 +11,21 @@ async function apiCall(prompt: string): Promise<string> {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + OPEN_API_KEY
         }
+        messages.push({ "role": "user", "content": prompt })
         const data = {
             "model": "gpt-3.5-turbo",
-            "messages": [{ "role": "user", "content": prompt }],
-            "temperature": 0.8
+            "messages": messages,
+            "temperature": 0.8,
         }
         const response = await axios.post("https://api.openai.com/v1/chat/completions", data, { headers });
-        return response.data.choices[0].message.content
+        const result = response.data.choices[0].message.content
+        messages.push({ "role": "assistant", "content": result })
+        if (messages.length > MAX_CONTEXT_LENGTH)
+            messages.shift()
+        return result
     } catch (error) {
         console.error(error);
-        return "Something went wrong"
+        return "Something went wrong..."
     }
 }
 
