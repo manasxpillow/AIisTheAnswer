@@ -1,42 +1,40 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.YargsError = exports.getCli = exports.yarg = void 0;
-const yargs_1 = __importDefault(require("yargs"));
-const helpers_1 = require("yargs/helpers");
 const yargs_interactive_1 = __importDefault(require("yargs-interactive"));
-exports.yarg = (0, yargs_1.default)(helpers_1.hideBin(process.argv));
-const topBanner = `Abhishek talks: is an interactive commandline cli for chatGPT`;
-const bottomBanner = `feel free to call me lord`;
-function getCli() {
-    const cli = exports.yarg
-        .usage(topBanner)
-        .epilogue(bottomBanner).scriptName("").demandCommand(1);
-    return cli;
+const axios_1 = __importDefault(require("axios"));
+function apiCall(prompt) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer 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'
+            };
+            const data = {
+                "model": "gpt-3.5-turbo",
+                "messages": [{ "role": "user", "content": prompt }],
+                "temperature": 0.8
+            };
+            const response = yield axios_1.default.post("https://api.openai.com/v1/chat/completions", data, { headers });
+            return response.data.choices[0].message.content;
+        }
+        catch (error) {
+            console.error(error);
+            return "Something went wrong";
+        }
+    });
 }
-exports.getCli = getCli;
-class YargsError extends Error {
-}
-exports.YargsError = YargsError;
-// const cli = getCli()
-// cli.fail((msg, err) => {
-//     if (msg) {
-//         // Show command help message when no command is provided
-//         if (msg.includes("Not enough non-option arguments")) {
-//             yarg.showHelp()
-//             // eslint-disable-next-line no-console
-//             console.log("\n")
-//         }
-//     }
-//     const errorMessage =
-//         err !== undefined ? (err instanceof YargsError ? err.message : err.stack) : msg || "Unknown error"
-//     // eslint-disable-next-line no-console
-//     console.error(` ✖ ${errorMessage}\n`)
-//     process.exit(1)
-// }).parse()
-// ####################
 const options = {
     interactive: { default: true },
     prompt: {
@@ -44,15 +42,15 @@ const options = {
         describe: "Enter your prompt"
     }
 };
-function help() {
+function prompt() {
     (0, yargs_interactive_1.default)()
-        .usage("$0 <command> [args]")
+        .usage("$0 <command>")
         .interactive(options)
         .then(result => {
-        // The tool will prompt questions and will output your answers.
-        // TODO: Do something with the result (e.g result.name)
-        console.log(result.prompt);
-        help();
+        apiCall(result.prompt).then((res) => {
+            console.log(res);
+            prompt();
+        });
     });
 }
-help();
+prompt();
