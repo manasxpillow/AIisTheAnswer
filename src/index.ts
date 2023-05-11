@@ -1,12 +1,13 @@
 import yargsInteractive from 'yargs-interactive';
 import axios from 'axios';
 
+const OPEN_API_KEY = "some random api key"
 
 async function apiCall(prompt: string): Promise<string> {
     try {
         const headers = {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer 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'
+            'Authorization': 'Bearer ' + OPEN_API_KEY
         }
         const data = {
             "model": "gpt-3.5-turbo",
